@@ -22,7 +22,7 @@ pipeline {
                     
                     // Nota: Ho usato le doppie virgolette (") e le escape sequence (\') per la stringa del comando SSH,
                     // in modo da poter usare le variabili Jenkins (es. ${env.INPUT_DIR}) all'interno del comando sh Groovy.
-                    sh "ssh -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.80 ' \
+                    sh "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.80 ' \
                             cd /orfeo/scratch/area/fbazzocchi/test_jen && git pull; \
                             cd /orfeo/scratch/area/fbazzocchi/test_jen/jenkins_test; \
                             \
