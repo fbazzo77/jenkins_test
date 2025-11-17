@@ -11,7 +11,7 @@ pipeline {
         INPUT_DIR = "${params.pathToDirI}"  
         OUTPUT_DIR = "${params.pathToDirO}"
         //Definisci il percorso completo dove avverrà il clone remoto
-        REMOTE_CLONE_PATH = "/orfeo/scratch/area/fbazzocchi/jenkins_onpexp" 
+        REMOTE_CLONE_PATH = "/orfeo/scratch/area/jenkins_onpexp" 
         REPO_NAME = "jenkins_test"
     }
     
