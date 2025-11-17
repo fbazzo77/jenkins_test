@@ -1,13 +1,14 @@
 pipeline {
-    agent { 
-        node {
-            label 'docker'
-            }
-    }
+    agent any
+    
     parameters {
         string(name: 'pathToDirI', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/input', description: 'input file dir')
         string(name: 'pathToDirO', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/ouput', description: 'ouput file dir')
         
+    }
+    environment {
+        INPUT_DIR = "${parameters.pathToDirI}"// La directory corrente dove si trova input_data.txt
+        OUTPUT_DIR = "${parameters.pathToDirO}"// La directory dove vuoi l'output
     }
     stages {
         stage('Pull project repository on the Cluster') {
@@ -16,6 +17,7 @@ pipeline {
                     sh '''
                         ssh -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.81 '
                                 cd '/orfeo/scratch/area/fbazzocchi/test_jen' && git pull
+                                python3 test_script.py
                             '
                     '''
                 }    
