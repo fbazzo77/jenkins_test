@@ -2,39 +2,55 @@ pipeline {
     agent any
     
     parameters {
-        // Uso 'output' invece di 'ouput'
-        string(name: 'pathToDirI', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/input', description: 'input file dir')
-        string(name: 'pathToDirO', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/output', description: 'output file dir')
+        string(name: 'pathToDirI', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/input', description: 'Input file directory.')
+        string(name: 'pathToDirO', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/output', description: 'Output file directory.')
     }
     
     environment {
-        // CORREZIONE: Uso 'params' invece di 'parameters' (sebbene tu lo avessi già fatto correttamente)
-        // Correzione 2: Uso ${params.pathToDirI}, il valore viene risolto in environment
-        INPUT_DIR = "${params.pathToDirI}" 
+        // Assegna i parametri alle variabili d'ambiente
+        INPUT_DIR = "${params.pathToDirI}"  
         OUTPUT_DIR = "${params.pathToDirO}"
+        # Definisci il percorso completo dove avverrà il clone remoto
+        REMOTE_CLONE_PATH = "/orfeo/scratch/area/fbazzocchi/jenkins_onpexp" 
+        REPO_NAME = "jenkins_test"
     }
     
     stages {
-        stage('Pull project repository on the Cluster and Run Script') {
+        stage('Esecuzione Remota su Cluster') {
             steps {
-                // withCredentials è il blocco corretto per gestire le chiavi SSH
+                // withCredentials per gestire le chiavi SSH
                 withCredentials([sshUserPrivateKey(credentialsId: 'orfeo_jenkins_onpexp', keyFileVariable: 'SSH_ONPEXP_KEY', passphraseVariable: '', usernameVariable: 'SSH_ONPEXP_USER')]) {
                     
-                    // Nota: Ho usato le doppie virgolette (") e le escape sequence (\') per la stringa del comando SSH,
-                    // in modo da poter usare le variabili Jenkins (es. ${env.INPUT_DIR}) all'interno del comando sh Groovy.
-                    sh "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.80 ' \
-                            cd /orfeo/scratch/area/fbazzocchi/jenkins_onpexp/ ; \
-                            mkdir test_pipeline ; \
-                            cd test_pipeline;
-                            git init;
-                            git clone https://github.com/fbazzo77/jenkins_test.git/ ; \
-                            //cd /orfeo/scratch/area/fbazzocchi/test_jen/jenkins_test && git pull;  \
-                            cd /orfeo/scratch/area/fbazzocchi/jenkins_onpexp/test_pipeline/jenkins_test;
-                            # Esegue lo script Python con i parametri passati dalla pipeline \
-                            python3 test_script.py ${env.INPUT_DIR} ${env.OUTPUT_DIR} \
-                        '"
-                } // 
+                    // La variabile SSH_ONPEXP_KEY contiene il percorso del file chiave temporaneo
+                    // Ho usato le triple virgolette singole (''') per rendere lo script shell più leggibile
+                    sh """
+                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.80 '
+                            
+                            echo "Inizio operazioni su host remoto 10.128.2.80..."
+                            
+                            # 1. Pulizia/Setup della Directory: Rimuovi la vecchia cartella di test se esiste
+                            # Non usare mkdir/git init/git clone sequenziali; usa un pattern clone-or-pull
+                            if [ -d "${REMOTE_CLONE_PATH}/${REPO_NAME}" ]; then
+                                echo "Directory ${REPO_NAME} già esistente. Eseguo git pull."
+                                cd ${REMOTE_CLONE_PATH}/${REPO_NAME}
+                                git pull
+                            else
+                                echo "Clono la repository in ${REMOTE_CLONE_PATH}."
+                                mkdir -p ${REMOTE_CLONE_PATH}
+                                cd ${REMOTE_CLONE_PATH}
+                                git clone https://github.com/fbazzo77/jenkins_test.git
+                            fi
+                            
+                            # 2. Esecuzione dello Script Python
+                            echo "Eseguo script con parametri: INPUT=${INPUT_DIR}, OUTPUT=${OUTPUT_DIR}"
+                            cd ${REMOTE_CLONE_PATH}/${REPO_NAME}
+                            python3 test_script.py ${INPUT_DIR} ${OUTPUT_DIR}
+                            
+                            echo "Operazioni remote completate."
+                        '
+                    """
+                } // Chiude withCredentials
             }
-        } // 
-    } // 
-} // 
+        } // Chiude stage
+    } // Chiude stages
+} // Chiude pipeline
