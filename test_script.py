@@ -31,6 +31,7 @@ try:
     num_righe = len(data.split('\n'))
     with open(OUTPUT_FILE, 'w') as f_out:
         f_out.write(str(num_righe))
+        f_out.write('ok')
 
 except Exception as e:
     print(f"Error")
