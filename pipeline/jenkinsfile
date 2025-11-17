@@ -10,7 +10,7 @@ pipeline {
         // Assegna i parametri alle variabili d'ambiente
         INPUT_DIR = "${params.pathToDirI}"  
         OUTPUT_DIR = "${params.pathToDirO}"
-        # Definisci il percorso completo dove avverrà il clone remoto
+        //Definisci il percorso completo dove avverrà il clone remoto
         REMOTE_CLONE_PATH = "/orfeo/scratch/area/fbazzocchi/jenkins_onpexp" 
         REPO_NAME = "jenkins_test"
     }
@@ -41,7 +41,7 @@ pipeline {
                                 git clone https://github.com/fbazzo77/jenkins_test.git
                             fi
                             
-                            # 2. Esecuzione dello Script Python
+                          
                             echo "Eseguo script con parametri: INPUT=${INPUT_DIR}, OUTPUT=${OUTPUT_DIR}"
                             cd ${REMOTE_CLONE_PATH}/${REPO_NAME}
                             python3 test_script.py ${INPUT_DIR} ${OUTPUT_DIR}
