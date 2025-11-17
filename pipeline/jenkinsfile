@@ -1,0 +1,42 @@
+pipeline {
+    agent { 
+        node {
+            label 'docker'
+            }
+    }
+    parameters {
+        string(name: 'pathToDirI', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/input', description: 'input file dir')
+        string(name: 'pathToDirO', defaultValue: '/orfeo/scratch/area/fbazzocchi/test_jen/ouput', description: 'ouput file dir')
+        
+    }
+    stages {
+        stage('Pull project repository on the Cluster') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'orfeo_jenkins_onpexp', keyFileVariable: 'SSH_ONPEXP_KEY', passphraseVariable: '', usernameVariable: 'SSH_ONPEXP_USER')]) {
+                    sh '''
+                        ssh -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.81 '
+                                cd '/orfeo/scratch/area/fbazzocchi/test_jen' && git pull
+                            '
+                    '''
+                }    
+            }
+        }  
+        stage('Scan the dir and launch the run') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'orfeo_jenkins_onpexp', keyFileVariable: 'SSH_ONPEXP_KEY', passphraseVariable: '', usernameVariable: 'SSH_ONPEXP_USER')]) {
+                    /*Look for .pod5 files*/
+                    sh '''                         
+                        ssh -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.81 '
+                            source ~/python_venvs/login_venv_jenkins/bin/activate
+                            cd ${HOME}/Nastro/FileScanner_pipeline/scan_dir
+                            mkdir -p '${outputLocation}'/scan_logs
+                            srun -p EPYC -N 1 -n 1 -c 1 --time=4:0:0 --output='${outputLocation}'/scan_logs/$(date +%Y%m%d_%H%M%S)_scan.log \
+                            --job-name=dir_scanning python3 main.py '${pathToDir}' '${basecallingModel}' '${outputLocation}' '${performAlign}'
+                            deactivate
+                        ' 
+                    '''
+                }    
+            }
+        }          
+    }
+}
