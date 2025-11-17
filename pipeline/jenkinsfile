@@ -26,8 +26,8 @@ pipeline {
                             cd /orfeo/scratch/area/fbazzocchi/test_jen ; \
                             
                            // git pull; 
-                            cd /orfeo/scratch/area/fbazzocchi/test_jen/jenkins_test; \
-                            \
+                            cd /orfeo/scratch/area/fbazzocchi/test_jen/jenkins_test && git pull;  \
+                            
                             # Esegue lo script Python con i parametri passati dalla pipeline \
                             python3 test_script.py ${env.INPUT_DIR} ${env.OUTPUT_DIR} \
                         '"
