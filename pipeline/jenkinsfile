@@ -25,7 +25,7 @@ pipeline {
                     sh "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${SSH_ONPEXP_KEY} ${SSH_ONPEXP_USER}@10.128.2.80 ' \
                             cd /orfeo/scratch/area/fbazzocchi/jenkins_onpexp/ ; \
                             mkdir test_pipeline ; \
-                            cd test_pipeline
+                            cd test_pipeline;
                             git init;
                             git clone https://github.com/fbazzo77/jenkins_test.git/ ; \
                             //cd /orfeo/scratch/area/fbazzocchi/test_jen/jenkins_test && git pull;  \
